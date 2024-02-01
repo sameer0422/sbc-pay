@@ -164,7 +164,7 @@ class NonSufficientFundsService:
             'suspendedOn': datetime.strptime(account['suspendedOn'], '%Y-%m-%dT%H:%M:%S%z')
             .strftime('%B %-d, %Y') if 'suspendedOn' in account else None,
             'accountNumber': cfs_account.cfs_account,
-            'businessName': account.get('businessName', account.get('createdBy')),
+            'businessOrUserName': account.get('businessName', account.get('createdBy')),
             'totalAmountRemaining': invoice['total_amount_remaining'],
             'totalAmount': invoice['total_amount'],
             'nsfAmount': invoice['nsf_amount'],
