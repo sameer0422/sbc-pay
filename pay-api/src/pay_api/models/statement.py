@@ -14,6 +14,7 @@
 """Model to handle statements data."""
 
 from datetime import datetime
+from typing import List
 import pytz
 from marshmallow import fields
 from sql_versioning import history_cls
@@ -148,7 +149,7 @@ class Statement(BaseModel):
             .filter(Statement.notification_status_code.in_(statuses)).all()
 
     @classmethod
-    def find_all_payments_and_invoices_for_statement(cls, statement_id: str):
+    def find_all_payments_and_invoices_for_statement(cls, statement_id: str) -> List[Invoice]:
         """Find all payment and invoices specific to a statement."""
         # Import from here as the statement invoice already imports statement and causes circular import.
         from .statement_invoices import StatementInvoices  # pylint: disable=import-outside-toplevel
