@@ -35,7 +35,7 @@ from sqlalchemy import func
 
 from utils.mailer import StatementNotificationInfo, publish_payment_notification
 
-from enums import StatementDueAction
+from enums import StatementNotificationAction
 from utils.auth_event import AuthEvent
     
 
@@ -89,7 +89,7 @@ class StatementDueTask:
                 action, due_date = cls.determine_action_and_due_date_by_invoice(statement.id)
                 total_due = Statement.get_summary(payment_account.auth_account_id, statement.id)['total_due']
                 if action and total_due > 0 and (emails := cls.determine_recipient_emails(statement, action)):
-                    if action == StatementDueAction.OVERDUE:
+                    if action == StatementNotificationAction.OVERDUE:
                         cls._freeze_cfs_account(payment_account)
                         cls._lock_auth_account(payment_account.auth_account_id)
                         cls._create_nsf_rows(payment_account.auth_account_id, statement.id)
@@ -136,18 +136,18 @@ class StatementDueTask:
         now_date = current_local_time().date()
 
         if day_before_invoice_overdue < now_date:
-            return StatementDueAction.OVERDUE, day_before_invoice_overdue
+            return StatementNotificationAction.OVERDUE, day_before_invoice_overdue
         elif day_before_invoice_overdue == now_date:
-            return StatementDueAction.DUE, day_before_invoice_overdue
+            return StatementNotificationAction.DUE, day_before_invoice_overdue
         elif seven_days_before_invoice_due == now_date:
-            return StatementDueAction.REMINDER, day_before_invoice_overdue
+            return StatementNotificationAction.REMINDER, day_before_invoice_overdue
         return None, day_before_invoice_overdue
 
     @classmethod
     def determine_recipient_emails(statement, action):
         # Receipients needs to change depending on the action.
         # TODO based on action grab certain emails..
-        if action == StatementDueAction.OVERDUE:
+        if action == StatementNotificationAction.OVERDUE:
             return ''
         recipients = StatementRecipientsModel. \
             find_all_recipients_for_payment_id(statement.payment_account_id)
