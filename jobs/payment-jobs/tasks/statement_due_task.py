@@ -175,7 +175,6 @@ class StatementDueTask:
     @classmethod
     def _create_nsf_rows(statement_id):
         """Create NSF rows for the statement."""
-        # grab statement ID. 
         for invoice in invoices:
             NonSufficientFundsService.save_non_sufficient_funds(invoice_id=invoice.id,
                                                                 invoice_number=inv_number,
