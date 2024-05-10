@@ -34,6 +34,7 @@ from pay_api.utils.util import current_local_time, get_first_and_last_dates_of_m
 import config
 from tasks.statement_task import StatementTask
 from tasks.statement_due_task import StatementDueTask
+from utils.enums import StatementDueAction
 from utils.mailer import StatementNotificationInfo
 
 from .factory import (
@@ -120,7 +121,7 @@ def test_send_unpaid_statement_notification(setup, session):
             StatementDueTask.process_unpaid_statements()
             mock_mailer.assert_called_with(StatementNotificationInfo(auth_account_id=account.auth_account_id,
                                                                      statement=statements[0][0],
-                                                                     is_due=True,
+                                                                     action=StatementDueAction.DUE,
                                                                      due_date=last_day.date(),
                                                                      emails=statement_recipient.email,
                                                                      total_amount_owing=total_amount_owing))
@@ -130,7 +131,16 @@ def test_send_unpaid_statement_notification(setup, session):
             StatementDueTask.process_unpaid_statements()
             mock_mailer.assert_called_with(StatementNotificationInfo(auth_account_id=account.auth_account_id,
                                                                      statement=statements[0][0],
-                                                                     is_due=False,
+                                                                     action=StatementDueAction.REMINDER,
+                                                                     due_date=last_day.date(),
+                                                                     emails=statement_recipient.email,
+                                                                     total_amount_owing=total_amount_owing))
+        # Freeze time to due date - trigger overdue notification
+        with freeze_time(last_day + timedelta(days=7)):
+            StatementDueTask.process_unpaid_statements()
+            mock_mailer.assert_called_with(StatementNotificationInfo(auth_account_id=account.auth_account_id,
+                                                                     statement=statements[0][0],
+                                                                     action=StatementDueAction.OVERDUE,
                                                                      due_date=last_day.date(),
                                                                      emails=statement_recipient.email,
                                                                      total_amount_owing=total_amount_owing))
